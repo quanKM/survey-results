@@ -1,6 +1,11 @@
 <template>
     <section :id="`survey-${item.id}`" class="result-item scrollspy">
-        <div class="result-item__product-name">
+        <div class="result-item__product-header">
+            <div
+                v-if="product.product_logo"
+                class="result-item__product-logo"
+                :style="{ backgroundImage: `url(${imageUrl(product.product_logo)})` }"
+            />
             <VPopover trigger="hover" :delay="{ show: 200, hide: 300 }">
                 <a :href="product.product_url" target="_blank">
                     <span>{{ product.product_name }}</span>
@@ -11,9 +16,7 @@
         </div>
 
         <blockquote class="result-item__product-description blockquote">
-            <p>
-                {{ product.product_description }}
-            </p>
+            <p>{{ product.product_description }}</p>
         </blockquote>
 
         <div class="result-item__product-answer">
@@ -24,9 +27,7 @@
                             {{ formatQuestionName(answer.question) }}
                         </td>
                         <td v-if="answer.question === 'product_url'">
-                            <a :href="answer.content" target="_blank">
-                                {{ answer.content }}
-                            </a>
+                            <a :href="answer.content" target="_blank">{{ answer.content }}</a>
                         </td>
                         <td v-else>
                             {{ formatAnswer(answer.content) }}
@@ -39,13 +40,13 @@
 </template>
 
 <script>
-    import _transform from 'lodash/transform'
-    import _filter from 'lodash/filter'
-    import _includes from 'lodash/includes'
+    import _transform from "lodash/transform"
+    import _filter from "lodash/filter"
+    import _includes from "lodash/includes"
     import _startCase from "lodash/startCase"
     import _findIndex from "lodash/findIndex"
     import { VPopover } from "v-tooltip"
-    import { findContentOfQuestion } from "~/libs/utils"
+    import { findContentOfQuestion, image } from "~/libs/utils"
     import Info from "./Info.vue"
 
     const productInfoFields = [
@@ -55,13 +56,14 @@
         "company_name",
         "company_url",
         "banner_image",
-        "company_logo"
+        "company_logo",
+        "product_logo"
     ]
 
     export default {
         components: {
             VPopover,
-            Info,
+            Info
         },
 
         props: {
@@ -80,20 +82,20 @@
         computed: {
             filtedAnswers() {
                 return _filter(this.answers, answer => {
-                    return _includes(['product_name', 'product_url'], answer.question)
-                        || !_includes(productInfoFields, answer.question)
+                    return (_includes(["product_name", "product_url"],answer.question)
+                        || !_includes(productInfoFields, answer.question))
                 })
             },
 
             product() {
                 const data = _filter(this.answers, answer => _includes(productInfoFields, answer.question))
-                const info = _transform(data, (info, item) => {
+                const info = _transform(data,(info, item) => {
                     info[item.question] = item.content
                     return info
-                }, {})
+                },{})
 
                 return info
-            },
+            }
         },
 
         methods: {
@@ -116,9 +118,9 @@
 <style lang="scss">
     .result-item {
         &__product {
-            &-name {
+            &-header {
                 border-bottom: 5px solid #dddddd;
-                padding: 10px 30px;
+                padding: 20px 30px;
                 margin-bottom: 20px;
                 a {
                     display: block;
@@ -127,6 +129,17 @@
                     font-weight: 500;
                 }
             }
+
+            &-logo {
+                width: 50px;
+                height: 50px;
+                float: left;
+                margin-right: 15px;
+                background-size: cover;
+                background-repeat: no-repeat;
+                background-position: center center;
+            }
+
             &-answer {
                 padding: 10px;
             }
